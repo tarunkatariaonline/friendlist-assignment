@@ -7,9 +7,13 @@ const userSchema = new Schema({
     required: true,
     unique: true
   },
+  name:{
+    type: String,
+    required: true,
+  },
   avatar: {
     type: String,
-    default: '' 
+    default: 'https://upload.wikimedia.org/wikipedia/en/b/bd/Doraemon_character.png' 
   },
   email: {
     type: String,
@@ -31,6 +35,10 @@ const userSchema = new Schema({
   friendlist: [{
     type: Schema.Types.ObjectId,
     ref: 'User' // Reference to other users
+  }],
+  friendRequests: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User' // Pending friend requests
   }]
 }, 
 { timestamps: true }
