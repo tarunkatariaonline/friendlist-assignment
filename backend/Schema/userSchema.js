@@ -39,6 +39,10 @@ const userSchema = new Schema({
   friendRequests: [{
     type: Schema.Types.ObjectId,
     ref: 'User' // Pending friend requests
+  }],
+  receivedFriendRequests: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User' // Friend requests received by the user
   }]
 }, 
 { timestamps: true }

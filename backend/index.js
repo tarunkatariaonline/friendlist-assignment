@@ -2,7 +2,8 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv')
 var cookieParser = require('cookie-parser')
-const userSchema = require('./Routers/userRoute')
+const userRouter = require('./Routers/userRoute')
+const friendBookRouter = require('./Routers/friendBookRoute')
 var bodyParser = require('body-parser')
 const port = 3000
 dotenv.config({path:'./config.env'})
@@ -13,7 +14,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-app.use(userSchema)
+app.use(userRouter)
+app.use(friendBookRouter)
 
 
 app.listen(port, () => {
