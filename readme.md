@@ -101,10 +101,10 @@ This project is the backend for a social networking application built using **No
 
 | Endpoint                                         | Method | Description                                | Protected |
 |--------------------------------------------------|--------|--------------------------------------------|-----------|
-| `/api/v1/friendbook/sendfriendrequest/:friendid` | GET    | Send a friend request to a user            | Yes       |
+| `/api/v1/friendbook/sendfriendrequest/:friendid` | POST    | Send a friend request to a user            | Yes       |
 | `/api/v1/friendbook/friendlist/:id`              | GET    | Retrieve the user's friend list            | Yes       |
-| `/api/v1/friendbook/acceptfriendrequest/:friendid`| GET    | Accept a friend request                    | Yes       |
-| `/api/v1/friendbook/rejectfriendrequest/:friendid`| GET    | Reject a friend request                    | Yes       |
+| `/api/v1/friendbook/acceptfriendrequest/:friendid`| POST    | Accept a friend request                    | Yes       |
+| `/api/v1/friendbook/rejectfriendrequest/:friendid`| POST    | Reject a friend request                    | Yes       |
 | `/api/v1/friendbook/removefriend/:friendid`      | DELETE | Remove a user from the friend list         | Yes       |
 | `/api/v1/friendbook/getreceivedfriendlist`       | GET    | Get all received friend requests           | Yes       |
 | `/api/v1/friendbook/getsendrequestfriendlist`    | GET    | Get all sent friend requests               | Yes       |
