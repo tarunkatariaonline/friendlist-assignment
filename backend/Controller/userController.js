@@ -1,17 +1,33 @@
 
 const User = require('../Schema/userSchema')
 const bcrypt = require('bcrypt');
+
 var jwt = require('jsonwebtoken');
 
 //create user api -
 
 const createUser = async (req, res) => {
 
-    try {
-        const { username, name, email, password, phoneno, hobbies } = req.body
+    
+    // console.log(req.file.filename)
+  
 
-        if (!username || !name || !email || !password || !phoneno || !hobbies) {
+    try {
+        let avatar;
+        if(req.file){
+            avatar = `/uploads/${req.file.filename}`
+        }
+        
+        let { username, name, email, password, phoneno, hobbies  } = req.body
+             hobbies = JSON.parse(hobbies)
+             console.log(hobbies)
+
+        if (!username || !name || !email || !password || !phoneno  ) {
             return res.status(400).json({ message: "Please fill all the fields" })
+        }
+
+        if(!avatar){
+            return res.status(400).json({ message: "Please upload a profile picture" })
         }
 
         const isUserNameExist = await User.findOne({ username })
@@ -27,8 +43,8 @@ const createUser = async (req, res) => {
         }
 
         const encryptedPassoword = await bcrypt.hash(password, 12);
-        console.log(encryptedPassoword)
-        const user = await User.create({ username, name, email, password: encryptedPassoword, phoneno, hobbies })
+        // console.log(encryptedPassoword)
+        const user = await User.create({ username, name, email, password: encryptedPassoword, phoneno, hobbies,avatar:avatar})
         res.status(201).json({
             message: "User Created Successfully.",
             user
@@ -42,6 +58,7 @@ const createUser = async (req, res) => {
 //login api 
 
 const loginUser = async (req, res) => {
+    console.log("I am in login")
     try {
         const { username, password } = req.body
 
@@ -61,6 +78,8 @@ const loginUser = async (req, res) => {
 
         res.cookie('friendbooktoken', token, {
             expires: new Date(Date.now() + 2555555555555),
+            secure:true,
+            sameSite:"none",
         })
         res.status(200).json({ message: "Login Successfull !", user })
 

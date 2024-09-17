@@ -2,7 +2,7 @@
 const User = require('../Schema/userSchema')
 
 const sendFriendRequest = async(req,res)=>{
-
+   console.log("hello")
    const friendid = req.params.friendid
    const senderid = req.user.id
    console.log(friendid)
@@ -144,11 +144,11 @@ const rejectFriendRequest = async (req, res) => {
             { name: { $regex: query, $options: 'i' } },
             { phoneno: { $regex: query, $options: 'i' } },
           ],
-        }).select('username avatar email phoneno');
+        }).select('name username avatar email phoneno');
       } else {
         // Populate the friendlist with full details if no query is present
         friends = await User.find({ _id: { $in: user.friendlist } })
-          .select('username avatar email phoneno');
+          .select('name username avatar email phoneno');
       }
   
       return res.status(200).json({ friends });
@@ -211,7 +211,7 @@ const rejectFriendRequest = async (req, res) => {
       }
   
       return res.status(200).json({
-        receivedRequests: user.receivedFriendRequests,
+        requests: user.receivedFriendRequests,
       });
     } catch (error) {
       console.error(error);
@@ -224,14 +224,14 @@ const rejectFriendRequest = async (req, res) => {
       const  id  = req.user.id; // The user's ID
   
       // Find the user and populate the friendRequests (outgoing requests)
-      const user = await User.findById(id).populate('friendRequests', 'username avatar email');
+      const user = await User.findById(id).populate('friendRequests', 'username avatar email name');
   
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
   
       return res.status(200).json({
-        sentRequests: user.friendRequests,
+        requests: user.friendRequests,
       });
     } catch (error) {
       console.error(error);
@@ -284,7 +284,7 @@ const rejectFriendRequest = async (req, res) => {
       const { query } = req.query; // The search query from the request
   
       if (!query) {
-        return res.status(400).json({ message: 'Query parameter is required' });
+        return res.status(200).json({ users:[] });
       }
   
       // Search for users whose username, name, or phoneno contains the query (case-insensitive)
@@ -306,34 +306,40 @@ const rejectFriendRequest = async (req, res) => {
 
   const suggestFriends = async (req, res) => {
     try {
-      const  id  = req.user.id; 
-      const limit = parseInt(req.query.limit) || 10; 
+      const id = req.user.id;
+      const limit = 5;
   
-      // Find the user and populate the friendlist
+      // Find the user and populate their friendlist
       const user = await User.findById(id).populate('friendlist', 'friendlist');
   
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
   
-      // Get the list of friends' IDs
+      // Get the list of friends' IDs (e.g., Vishal's ID)
       const friendsIds = user.friendlist.map(friend => friend._id);
   
-      // Find the friends of the user's friends
-      const friendsOfFriends = await User.find({
+      // Find friends (e.g., Vishal) and populate their friendlist
+      const friendsWithFriends = await User.find({
         _id: { $in: friendsIds },
-      }).populate('friendlist', 'username avatar email phoneno');
+        friendlist: { $exists: true, $ne: [] } // Make sure they have friends
+      }).populate('friendlist', 'name username avatar email phoneno');
   
+      // If none of the user's friends have friends, return an empty array
+      if (friendsWithFriends.length === 0) {
+        return res.status(200).json({ suggestions: [] });
+      }
   
-      const friendsOfFriendsIds = friendsOfFriends.flatMap(friend => friend.friendlist);
+      // Collect the friends of the user's friends (e.g., Tanmay and Dhruv)
+      const friendsOfFriendsIds = friendsWithFriends.flatMap(friend => friend.friendlist.map(f => f._id));
   
-     
+      // Find suggested friends who are not the current user and not the user's direct friends
       const suggestedFriends = await User.find({
         _id: { $in: friendsOfFriendsIds },
         _id: { $ne: id }, // Exclude the current user
-        _id: { $nin: friendsIds } // Exclude existing friends
-      }).select('username avatar email phoneno')
-        .limit(limit); 
+        _id: { $nin: friendsIds } // Exclude the user's direct friends (e.g., Vishal)
+      }).select('name username avatar email phoneno')
+        .limit(limit);
   
       return res.status(200).json({ suggestions: suggestedFriends });
     } catch (error) {
@@ -342,10 +348,12 @@ const rejectFriendRequest = async (req, res) => {
     }
   };
   
+  
+  
   const suggestUsingHobbies = async (req, res) => {
     try {
       const  id  = req.user.id; // The user's ID
-      const limit =   10; 
+      const limit =   5; 
   
       // Find the user and populate their hobbies
       const user = await User.findById(id).select('hobbies friendlist');
@@ -354,26 +362,26 @@ const rejectFriendRequest = async (req, res) => {
         return res.status(404).json({ message: 'User not found' });
       }
   
-      // Get the list of friends' IDs
+ 
       const friendsIds = user.friendlist;
   
-      // Find the friends of the user's friends, excluding the user and existing friends
+  
       const friendsOfFriends = await User.find({
         _id: { $in: friendsIds },
-      }).populate('friendlist', 'username avatar email phoneno hobbies');
+      }).populate('friendlist', 'name username avatar email phoneno hobbies');
   
-      // Extract the IDs of the friends of friends and their hobbies
+   
       const friendsOfFriendsIds = friendsOfFriends.flatMap(friend => friend.friendlist.map(f => ({
         id: f._id,
         hobbies: f.hobbies
       })));
   
-      // Remove the current user's ID and existing friends' IDs from the suggestions
+
       const suggestedFriends = await User.find({
         _id: { $in: friendsOfFriendsIds.map(friend => friend.id) },
-        _id: { $ne: id }, // Exclude the current user
-        _id: { $nin: friendsIds } // Exclude existing friends
-      }).select('username avatar email phoneno hobbies')
+        _id: { $ne: id }, 
+        _id: { $nin: friendsIds } 
+      }).select('name username avatar email phoneno hobbies')
         .lean(); // Convert to plain JavaScript object
   
       // Filter the suggested friends to include only those with at least one hobby in common

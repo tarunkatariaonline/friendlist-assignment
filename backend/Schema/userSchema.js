@@ -23,7 +23,7 @@ const userSchema = new Schema({
   phoneno: {
     type: String,
     required: true,
-    unique: true
+    
   },
   password: {
     type: String,

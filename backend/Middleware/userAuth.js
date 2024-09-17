@@ -3,6 +3,7 @@ const User = require('../Schema/userSchema')
 const userAuth = async(req,res,next)=>{
 
     const token = req.cookies.friendbooktoken
+    console.log(token)
     if(!token){
          return res.status(401).json({success:false,
         message:"User not authanticated"})
